@@ -1,4 +1,4 @@
-# RL Gymnasium – Minimal, Modular PPO (and friends)
+# RL Gymnasium 
 
 Train classic Gymnasium control tasks with clean, extensible RL code.
 - ✅ PPO + CartPole-v1
