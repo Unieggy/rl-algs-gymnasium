@@ -1,12 +1,12 @@
 import numpy as np
 import gymnasium as gym
-ALPHA = 0.07      
-GAMMA = 0.99     
+ALPHA = 0.07      # learning rate (update size)
+GAMMA = 0.99      # discount factor
 EPS_START = 1.0   # start fully exploring
 EPS_MIN = 0.05    # keep some exploration
-EPS_DECAY = 0.997 
+EPS_DECAY = 0.997 # per-episode decay: eps <- max(EPS_MIN, eps * EPS_DECAY)
 
-N_EPISODES = 150000 
+N_EPISODES = 150000 # number of training episodes
 env=gym.make("CartPole-v1")
 obs,info=env.reset(seed=42)
 n_actions=env.action_space.n
@@ -52,14 +52,20 @@ def train():
         while not done:
             obs_next,r,terminated,truncated,info=env.step(a)
             done=terminated or truncated
-            bootstrap=0.0 if terminated else 1.0
             s_next=discretize(obs_next)
             ep_return += float(r)
-            best_next=np.max(Q[s_next])
-            td_target=r+GAMMA*best_next*bootstrap
-            td_error=td_target-Q[s+(a,)]
-            Q[s+(a,)]+=ALPHA*td_error
-            s=s_next
+            if not done:
+                a_next=eps_greedy_action(Q,s_next,eps)
+                best_next=Q[s_next+(a_next,)]    
+                td_target=r+GAMMA*best_next
+                td_error=td_target-Q[s+(a,)]
+                Q[s+(a,)]+=ALPHA*td_error
+                s, a = s_next, a_next
+            else:
+                td_target=r
+                td_error  = td_target - Q[s + (a,)]
+                Q[s + (a,)] += ALPHA * td_error
+                
         eps=max(EPS_MIN,eps*EPS_DECAY)
         returns_log.append(ep_return)
         if ep%1000==0:
@@ -71,5 +77,5 @@ def train():
 if __name__ == "__main__":
     returns = train()
     print("Training done. Last 10 returns:", returns[-10:])
-    np.save("qtable_cartpole.npy", Q)
-    print("Saved Q-table to qtable_cartpole.npy")
+    np.save("qtable_cartpoleSarsa.npy", Q)
+    print("Saved Q-table to qtable_cartpoleSarsa.npy")

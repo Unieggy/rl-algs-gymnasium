@@ -20,10 +20,8 @@ def discretize(obs: np.ndarray) -> tuple:
     for val, edges in zip(clipped, BINS):
         idxs.append(int(np.digitize(val, edges)))
     return tuple(idxs)
-
-Q = np.load("qtable_cartpole.npy")  
+Q = np.load("qtable_cartpoleSarsa.npy")  
 print("Loaded Q shape:", Q.shape)
-
 def watch(num_episodes=10, seed=0):
     env = gym.make("CartPole-v1", render_mode="human")
     for k in range(num_episodes):
@@ -32,7 +30,7 @@ def watch(num_episodes=10, seed=0):
         done = False
         ep_ret = 0
         while not done:
-            a = int(np.argmax(Q[s]))                 # pick the best action greedily
+            a = int(np.argmax(Q[s]))               
             obs, r, terminated, truncated, info = env.step(a)
             s = discretize(obs)
             ep_ret += r
